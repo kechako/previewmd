@@ -12,6 +12,6 @@ go get -u github.com/kechako/previewmd
 
 ``` console
 previewmd something.md
-# access 'http://localhost:8080/' in the browser
+# will open browser and visit http://localhost:8080
 ```
 

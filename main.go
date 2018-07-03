@@ -87,7 +87,7 @@ Options:
 func main() {
 	parseFlags()
 
-	markdown, err := NewMarkdown(markdownName, useGitHub)
+	markdown, err := NewMarkdown(markdownName, useGitHub, markdownContext)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error : %v\n", err)
 		os.Exit(1)

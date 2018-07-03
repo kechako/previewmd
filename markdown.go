@@ -30,7 +30,7 @@ type Markdown struct {
 	renderer blackfriday.Renderer
 }
 
-func NewMarkdown(name string, useGitHub bool) (*Markdown, error) {
+func NewMarkdown(name string, useGitHub bool, markdownContext string) (*Markdown, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, errors.Wrap(err, "could not initialize markdown watcher")
@@ -41,6 +41,7 @@ func NewMarkdown(name string, useGitHub bool) (*Markdown, error) {
 
 	m := &Markdown{
 		Name:    name,
+		Context: markdownContext,
 		watcher: watcher,
 		done:    cancel,
 	}
@@ -49,7 +50,8 @@ func NewMarkdown(name string, useGitHub bool) (*Markdown, error) {
 		m.client = github.NewClient(nil)
 	} else {
 		m.renderer = blackfriday.NewHTMLRenderer(blackfriday.HTMLRendererParameters{
-			Flags: blackfriday.HTMLFlagsNone,
+			AbsolutePrefix: markdownContext,
+			Flags:          blackfriday.HTMLFlagsNone,
 		})
 	}
 

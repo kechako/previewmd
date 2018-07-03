@@ -4,12 +4,18 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/pkg/browser"
 )
 
 var (
@@ -84,6 +90,25 @@ Options:
 	}
 }
 
+func previewURL(addr string) (string, error) {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return "", err
+	}
+
+	var host string
+	if len(tcpAddr.IP) == 0 || tcpAddr.IP.IsLoopback() || tcpAddr.IP.IsUnspecified() {
+		host = "localhost"
+	} else {
+		host = tcpAddr.IP.String()
+	}
+
+	return (&url.URL{
+		Scheme: "http",
+		Host:   net.JoinHostPort(host, strconv.Itoa(tcpAddr.Port)),
+	}).String(), nil
+}
+
 func main() {
 	parseFlags()
 
@@ -123,7 +148,22 @@ func main() {
 		}
 	}()
 
-	err = srv.ListenAndServe()
+	l, err := net.Listen("tcp", httpAddr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error : %v\n", err)
+		os.Exit(1)
+	}
+
+	u, err := previewURL(httpAddr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error : %v\n", err)
+		os.Exit(1)
+	}
+	log.Printf("Listen to %s ...", httpAddr)
+	log.Printf("Open brower and visit %s...", u)
+	browser.OpenURL(u)
+
+	err = srv.Serve(l)
 	if err != nil && err != http.ErrServerClosed {
 		fmt.Fprintf(os.Stderr, "Error : %v\n", err)
 		os.Exit(1)

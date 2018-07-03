@@ -7,14 +7,31 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"sync"
+	"path"
+	"path/filepath"
 )
 
 type PreviewHandler struct {
 	Markdown *Markdown
 
-	template *template.Template
-	once     sync.Once
+	fileDir     string
+	previewPath string
+
+	fileServer http.Handler
+	template   *template.Template
+}
+
+func NewPreviewHandler(markdown *Markdown) *PreviewHandler {
+	fileDir := filepath.Dir(markdown.Name)
+	h := &PreviewHandler{
+		Markdown:    markdown,
+		fileDir:     fileDir,
+		previewPath: path.Join("/", filepath.Base(markdown.Name)),
+		fileServer:  http.FileServer(http.Dir(fileDir)),
+	}
+	h.loadTemplate()
+
+	return h
 }
 
 type MarkdownData struct {
@@ -23,7 +40,10 @@ type MarkdownData struct {
 }
 
 func (h *PreviewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.once.Do(h.loadTemplate)
+	if r.URL.Path != "/" && r.URL.Path != h.previewPath {
+		h.fileServer.ServeHTTP(w, r)
+		return
+	}
 
 	data := &MarkdownData{
 		HTML: h.Markdown.HTML,

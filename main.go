@@ -106,7 +106,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/css/github-markdown.css", &CSSHandler{Name: cssFile})
 	mux.Handle("/modified", &ModifiedHandler{Markdown: markdown})
-	mux.Handle("/", &PreviewHandler{Markdown: markdown})
+	mux.Handle("/", NewPreviewHandler(markdown))
 
 	srv := &http.Server{
 		Addr:    httpAddr,

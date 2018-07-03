@@ -58,7 +58,8 @@ Options:
 		os.Exit(2)
 	}
 
-	markdownName, err := filepath.Abs(args[0])
+	var err error
+	markdownName, err = filepath.Abs(args[0])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error : Markdown filename is not valid.")
 		os.Exit(2)

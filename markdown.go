@@ -44,7 +44,6 @@ func NewMarkdown(name string, useGitHub bool) (*Markdown, error) {
 		watcher: watcher,
 		done:    cancel,
 	}
-	m.Generate()
 
 	if useGitHub {
 		m.client = github.NewClient(nil)
@@ -53,6 +52,8 @@ func NewMarkdown(name string, useGitHub bool) (*Markdown, error) {
 			Flags: blackfriday.HTMLFlagsNone,
 		})
 	}
+
+	m.Generate()
 
 	go m.watch(ctx)
 
